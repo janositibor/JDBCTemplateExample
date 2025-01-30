@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -50,7 +51,12 @@ class MovieRepositoryTest {
         assertEquals(2L,getMovie2.getId());
         assertEquals(3L,getMovie3.getId());
     }
-
+    @Test
+    void notFoundMovie(){
+        Movie movie=new Movie("Roncsfilm", LocalDate.of(1992,9,1));
+        Optional<Movie> getMovie=movieRepository.findMovie(movie);
+        assertFalse(getMovie.isPresent());
+    }
 
 
 }

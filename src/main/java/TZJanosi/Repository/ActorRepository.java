@@ -1,7 +1,16 @@
 package TZJanosi.Repository;
 
 import TZJanosi.Model.Actor;
+import TZJanosi.Model.ActorRowMapper;
+import TZJanosi.Model.MovieRowMapper;
 import org.mariadb.jdbc.MariaDbDataSource;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,64 +18,41 @@ import java.util.List;
 import java.util.Optional;
 
 public class ActorRepository implements Repository{
-    private MariaDbDataSource dataSource;
+    private JdbcTemplate jdbcTemplate;
 
     public ActorRepository(MariaDbDataSource dataSource) {
-        this.dataSource = dataSource;
+        jdbcTemplate = new JdbcTemplate(dataSource);
     }
     public Optional<Long> saveBasicAndGetGeneratedKey(Actor actor) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "insert into actors(name,yob) values (?,?)",
-                     Statement.RETURN_GENERATED_KEYS)
-        ) {
-            stmt.setString(1, actor.getName());
-            stmt.setInt(2, actor.getYob());
-            stmt.executeUpdate();
-            return executeAndGetGeneratedKey(stmt);
-        } catch (SQLException sqle) {
-            throw new IllegalArgumentException("Error by insert actor: "+actor, sqle);
-        }
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(new PreparedStatementCreator() {
+                                @Override
+                                public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                                    PreparedStatement ps =
+                                            connection.prepareStatement("insert into actors(name,yob) values (?,?)",
+                                    Statement.RETURN_GENERATED_KEYS);
+                                    ps.setString(1, actor.getName());
+                                    ps.setInt(2, actor.getYob());
+                                    return ps;
+                                }
+                            }, keyHolder
+        );
+
+        return Optional.ofNullable(keyHolder.getKey().longValue());
     }
 
     public Optional<Actor> findActor(Actor actor) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement("select id, name,yob from actors where name LIKE ? and yob=?")){
-            stmt.setString(1, actor.getName());
-            stmt.setInt(2, actor.getYob());
-            return actorFromStatement(stmt);
-        } catch (SQLException sqle) {
-            throw new IllegalArgumentException("Error in findActor: "+actor, sqle);
-        }
-    }
-    private Optional<Actor> actorFromStatement(PreparedStatement stmt) throws SQLException{
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                long id= rs.getLong("id");
-                String name = rs.getString("name");
-                int yob = rs.getInt("yob");
-                return Optional.of(new Actor(id, name, yob));
-            }
+        List<Actor> actors=jdbcTemplate.query("select id, name,yob from actors where name LIKE ? and yob=?"
+                , new ActorRowMapper()
+                ,actor.getName(),actor.getYob());
+        if(actors.size()<1){
             return Optional.empty();
         }
+        return Optional.of(actors.get(0));
     }
-    public List<Actor> findAllActor(){
-        try (Connection conn = dataSource.getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("select id, name, yob from actors order by id")) {
-            List<Actor> output = new ArrayList<>();
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                int yob = rs.getInt("yob");
-                output.add(new Actor(id, name, yob));
-            }
-            return output;
-        }
-        catch (SQLException se) {
-            throw new IllegalStateException("Cannot select employees", se);
-        }
 
+    public List<Actor> findAllActor(){
+            return jdbcTemplate.query("select id, name, yob from actors order by id", new ActorRowMapper());
     }
 }

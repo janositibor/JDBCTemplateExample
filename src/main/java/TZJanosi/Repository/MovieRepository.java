@@ -1,64 +1,48 @@
 package TZJanosi.Repository;
 
 import TZJanosi.Model.Actor;
+import TZJanosi.Model.ActorRowMapper;
 import TZJanosi.Model.Movie;
+import TZJanosi.Model.MovieRowMapper;
 import org.mariadb.jdbc.MariaDbDataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.Optional;
 
 public class MovieRepository implements Repository{
-    private MariaDbDataSource dataSource;
+    private JdbcTemplate jdbcTemplate;
 
     public MovieRepository(MariaDbDataSource dataSource) {
-        this.dataSource = dataSource;
+        jdbcTemplate = new JdbcTemplate(dataSource);
     }
     public Optional<Long> saveBasicAndGetGeneratedKey(Movie movie) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "insert into movies(title,release_date) values (?,?)",
-                     Statement.RETURN_GENERATED_KEYS)
-        ) {
-            stmt.setString(1, movie.getTitle());
-            stmt.setDate(2, Date.valueOf(movie.getReleaseDate()));
-            stmt.executeUpdate();
-            return executeAndGetGeneratedKey(stmt);
-        } catch (SQLException sqle) {
-            throw new IllegalArgumentException("Error by insert movie: "+movie, sqle);
-        }
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(new PreparedStatementCreator() {
+                                @Override
+                                public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                                    PreparedStatement ps =
+                                            connection.prepareStatement("insert into movies(title,release_date) values (?,?)",
+                                                    Statement.RETURN_GENERATED_KEYS);
+                                    ps.setString(1, movie.getTitle());
+                                    ps.setDate(2, Date.valueOf(movie.getReleaseDate()));;
+                                    return ps;
+                                }
+                            }, keyHolder
+        );
+
+        return Optional.ofNullable(keyHolder.getKey().longValue());
     }
     public Optional<Movie> findMovie(Movie movie) {
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement("select movies.id AS id, movies.title AS title, movies.release_date AS release_date, COUNT(ratings.rating) AS number_of_ratings, AVG(ratings.rating) AS average_of_ratings from movies LEFT JOIN ratings ON movies.id=ratings.movie_id WHERE movies.title LIKE ? AND movies.release_date=?")){
-            stmt.setString(1, movie.getTitle());
-            stmt.setDate(2, Date.valueOf(movie.getReleaseDate()));
-            return movieFromStatement(stmt);
-        } catch (SQLException sqle) {
-            throw new IllegalArgumentException("Error in findMovie: "+movie, sqle);
-        }
+        return Optional.ofNullable(jdbcTemplate.queryForObject("select movies.id AS id, movies.title AS title, movies.release_date AS release_date, COUNT(ratings.rating) AS number_of_ratings, AVG(ratings.rating) AS average_of_ratings from movies LEFT JOIN ratings ON movies.id=ratings.movie_id WHERE movies.title LIKE ? AND movies.release_date=?"
+                ,new MovieRowMapper(true),movie.getTitle(),Date.valueOf(movie.getReleaseDate())));
     }
-    private Optional<Movie> movieFromStatement(PreparedStatement stmt) throws SQLException{
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                long id= rs.getLong("id");
-                if(id==0){
-                    return Optional.empty();
-                }
-                String title = rs.getString("title");
-                LocalDate releaseDate = rs.getDate("release_date").toLocalDate();
-                int numberOfRatings=rs.getInt("number_of_ratings");
-                double averageOfRatings=rs.getDouble("average_of_ratings");
 
-                Movie movie=new Movie(id, title, releaseDate);
-                movie.setNumberOfRatings(numberOfRatings);
-                movie.setAverageOfRatings(averageOfRatings);
-                return Optional.of(movie);
-            }
-            return Optional.empty();
-        }
-    }
 
 
 }
