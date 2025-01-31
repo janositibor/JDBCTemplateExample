@@ -36,7 +36,14 @@ public class ActorRepository{
 
         return Optional.ofNullable(keyHolder.getKey().longValue());
     }
-
+    public void updateActor(Actor actorToUpdate, Actor pattern){
+        String sql = "UPDATE actors SET name = ?, yob=?  WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, pattern.getName(), pattern.getYob(),actorToUpdate.getId());
+    }
+    public void deleteActor(Long id){
+        String sql = "DELETE FROM actors WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, id);
+    }
     public Optional<Actor> findActor(Actor actor) {
         List<Actor> actors=jdbcTemplate.query("select id, name,yob from actors where name LIKE ? and yob=?"
                 , new ActorRowMapper()

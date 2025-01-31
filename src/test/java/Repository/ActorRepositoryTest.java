@@ -65,5 +65,39 @@ class ActorRepositoryTest {
                 .extracting(Actor::getName,Actor::getYob)
                 .containsExactly(Tuple.tuple("Scherer Peter",1961),Tuple.tuple("Mucsi Zoltan",1957));
     }
+    @Test
+    void updateActorTest(){
+        Actor actor=new Actor("Scherer Peter",1960);
+        actorRepository.saveBasicAndGetGeneratedKey(actor).get();
+        Actor getActor=actorRepository.findActor(actor).get();
+        actorRepository.updateActor(getActor,new Actor("Scherer Péter",1961));
+        Actor getActor2=actorRepository.findActor(new Actor("Scherer Péter",1961)).get();
 
+        assertEquals(1L,getActor2.getId());
+        assertThat(getActor2)
+                .hasFieldOrPropertyWithValue("name","Scherer Péter")
+                .hasFieldOrPropertyWithValue("yob",1961);
+    }
+    @Test
+    void deleteActorTest(){
+        Actor actor1=new Actor("Scherer Peter",1961);
+        long id1=actorRepository.saveBasicAndGetGeneratedKey(actor1).get();
+        Actor actor2=new Actor("Mucsi Zoltan",1957);
+        long id2=actorRepository.saveBasicAndGetGeneratedKey(actor2).get();
+
+        List<Actor> actors=actorRepository.findAllActor();
+        assertThat(actors)
+                .hasSize(2)
+                .extracting(Actor::getName,Actor::getYob)
+                .containsExactly(Tuple.tuple("Scherer Peter",1961),Tuple.tuple("Mucsi Zoltan",1957));
+
+        Actor getActor1=actorRepository.findActor(actor1).get();
+        actorRepository.deleteActor(getActor1.getId());
+
+        actors=actorRepository.findAllActor();
+        assertThat(actors)
+                .hasSize(1)
+                .extracting(Actor::getName,Actor::getYob)
+                .containsExactly(Tuple.tuple("Mucsi Zoltan",1957));
+    }
 }
