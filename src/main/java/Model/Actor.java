@@ -1,4 +1,4 @@
-package TZJanosi.Model;
+package Model;
 
 import java.util.List;
 

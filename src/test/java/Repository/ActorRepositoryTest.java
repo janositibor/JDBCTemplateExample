@@ -1,6 +1,8 @@
-package TZJanosi.Repository;
+package Repository;
 
-import TZJanosi.Model.Actor;
+import Model.Actor;
+import Repository.ActorRepository;
+import Repository.DB;
 import org.assertj.core.groups.Tuple;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package TZJanosi.Model;
+package Model;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

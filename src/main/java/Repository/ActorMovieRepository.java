@@ -1,24 +1,18 @@
-package TZJanosi.Repository;
+package Repository;
 
-import TZJanosi.Model.Actor;
-import TZJanosi.Model.ActorRowMapper;
-import TZJanosi.Model.Movie;
-import TZJanosi.Model.MovieRowMapper;
-import org.mariadb.jdbc.MariaDbDataSource;
+import Model.Actor;
+import Model.ActorRowMapper;
+import Model.Movie;
+import Model.MovieRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.ArrayList;
+import javax.sql.DataSource;
 import java.util.List;
 
 public class ActorMovieRepository {
     private JdbcTemplate jdbcTemplate;
 
-    public ActorMovieRepository(MariaDbDataSource dataSource) {
+    public ActorMovieRepository(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 

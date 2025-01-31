@@ -1,11 +1,10 @@
-package TZJanosi.Model;
+package Model;
 
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Optional;
 
 public class MovieRowMapper  implements RowMapper<Movie> {
     private boolean withRatings;

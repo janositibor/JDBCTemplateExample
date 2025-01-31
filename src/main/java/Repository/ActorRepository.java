@@ -1,26 +1,21 @@
-package TZJanosi.Repository;
+package Repository;
 
-import TZJanosi.Model.Actor;
-import TZJanosi.Model.ActorRowMapper;
-import TZJanosi.Model.MovieRowMapper;
-import org.mariadb.jdbc.MariaDbDataSource;
-import org.springframework.dao.EmptyResultDataAccessException;
+import Model.Actor;
+import Model.ActorRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
+import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ActorRepository implements Repository{
+public class ActorRepository{
     private JdbcTemplate jdbcTemplate;
 
-    public ActorRepository(MariaDbDataSource dataSource) {
+    public ActorRepository(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
     public Optional<Long> saveBasicAndGetGeneratedKey(Actor actor) {

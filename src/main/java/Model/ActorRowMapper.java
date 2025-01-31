@@ -1,11 +1,9 @@
-package TZJanosi.Model;
+package Model;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 
 public class ActorRowMapper implements RowMapper<Actor> {
 

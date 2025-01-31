@@ -1,23 +1,20 @@
-package TZJanosi.Repository;
+package Repository;
 
-import TZJanosi.Model.Actor;
-import TZJanosi.Model.ActorRowMapper;
-import TZJanosi.Model.Movie;
-import TZJanosi.Model.MovieRowMapper;
-import org.mariadb.jdbc.MariaDbDataSource;
+import Model.MovieRowMapper;
+import Model.Movie;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
+import javax.sql.DataSource;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.Optional;
 
-public class MovieRepository implements Repository{
+public class MovieRepository{
     private JdbcTemplate jdbcTemplate;
 
-    public MovieRepository(MariaDbDataSource dataSource) {
+    public MovieRepository(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
     public Optional<Long> saveBasicAndGetGeneratedKey(Movie movie) {

@@ -1,7 +1,8 @@
-package TZJanosi.Repository;
+package Repository;
 
 import org.mariadb.jdbc.MariaDbDataSource;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
 public class DB {
@@ -29,7 +30,7 @@ public class DB {
         }
     }
 
-    public MariaDbDataSource getDataSource() {
+    public DataSource getDataSource() {
         return dataSource;
     }
 }
