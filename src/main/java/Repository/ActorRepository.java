@@ -18,23 +18,17 @@ public class ActorRepository{
     public ActorRepository(DataSource dataSource) {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
-    public Optional<Long> saveBasicAndGetGeneratedKey(Actor actor) {
+    public Optional<Long> saveBasicAndGetGeneratedKey(Actor actor){
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(new PreparedStatementCreator() {
-                                @Override
-                                public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-                                    PreparedStatement ps =
-                                            connection.prepareStatement("insert into actors(name,yob) values (?,?)",
-                                    Statement.RETURN_GENERATED_KEYS);
-                                    ps.setString(1, actor.getName());
-                                    ps.setInt(2, actor.getYob());
-                                    return ps;
-                                }
-                            }, keyHolder
-        );
-
+        jdbcTemplate.update(con -> preparedStatementForInsert(con,actor), keyHolder);
         return Optional.ofNullable(keyHolder.getKey().longValue());
+    }
+    private PreparedStatement preparedStatementForInsert(Connection con, Actor actor) throws SQLException {
+        String sql = "insert into actors(name,yob) values (?,?)";
+        PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        ps.setString(1, actor.getName());
+        ps.setInt(2, actor.getYob());
+        return ps;
     }
     public void updateActor(Actor actorToUpdate, Actor pattern){
         String sql = "UPDATE actors SET name = ?, yob=?  WHERE id = ?";
